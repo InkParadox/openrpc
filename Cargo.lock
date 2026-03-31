@@ -924,6 +924,8 @@ dependencies = [
  "clap",
  "openrpc-core",
  "openrpc-proxy",
+ "reqwest",
+ "serde_json",
  "tokio",
  "tracing",
  "tracing-subscriber",

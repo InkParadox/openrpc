@@ -6,6 +6,10 @@
 //!   openrpc serve --chain eth --chain base # specific chains only
 //!   openrpc serve --cache ./rpc-cache.db   # persistent SQLite cache
 //!   openrpc chains                         # list built-in chains
+//!   openrpc bench                          # benchmark local proxy
+//!   openrpc bench --proxy https://api.mevici.com/rpc --compare  # vs production
+
+mod bench;
 
 use clap::{Parser, Subcommand};
 use tracing_subscriber::EnvFilter;
@@ -59,6 +63,30 @@ enum Commands {
 
     /// List all built-in chains and their providers.
     Chains,
+
+    /// Benchmark a running proxy: latency, cache effect, provider health.
+    Bench {
+        /// Proxy base URL to benchmark.
+        #[arg(long, default_value = "http://localhost:3000")]
+        proxy: String,
+
+        /// Chain to test.
+        #[arg(short, long, default_value = "eth")]
+        chain: String,
+
+        /// Number of requests per method.
+        #[arg(short, long, default_value = "10")]
+        n: usize,
+
+        /// Also compare proxy vs a direct provider URL.
+        #[arg(long)]
+        compare: bool,
+
+        /// Direct provider URL to compare against (requires --compare).
+        /// Defaults to Cloudflare ETH if not set.
+        #[arg(long)]
+        direct: Option<String>,
+    },
 }
 
 #[tokio::main]
@@ -94,6 +122,15 @@ async fn main() -> anyhow::Result<()> {
             }.with_env_providers(); // also load OPENRPC_EXTRA_* from env
 
             serve(config).await?;
+        }
+
+        Commands::Bench { proxy, chain, n, compare, direct } => {
+            let direct_url = direct.as_deref().or(if chain == "eth" {
+                Some("https://cloudflare-eth.com")
+            } else {
+                None
+            });
+            bench::run(&proxy, &chain, n, compare, direct_url).await?;
         }
 
         Commands::Chains => {
