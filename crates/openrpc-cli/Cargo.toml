@@ -1,0 +1,19 @@
+[package]
+name = "openrpc-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OpenRPC proxy CLI — drop-in multi-chain JSON-RPC load balancer"
+
+[[bin]]
+name = "openrpc"
+path = "src/main.rs"
+
+[dependencies]
+openrpc-core.workspace = true
+openrpc-proxy.workspace = true
+clap.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+anyhow = "1"

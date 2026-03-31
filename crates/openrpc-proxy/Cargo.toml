@@ -1,0 +1,24 @@
+[package]
+name = "openrpc-proxy"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Health-aware multi-provider RPC proxy with SQLite response cache"
+
+[dependencies]
+openrpc-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+axum.workspace = true
+rusqlite.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+thiserror.workspace = true
+anyhow = "1"
+sha2.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }

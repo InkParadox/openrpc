@@ -1,0 +1,10 @@
+[package]
+name = "openrpc-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Chain configs, RPC types, and provider definitions for OpenRPC"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
