@@ -34,6 +34,9 @@ pub struct ServerConfig {
     pub cache_path: Option<String>,
     /// Which chains to enable. Empty = all built-in chains.
     pub chains: Vec<String>,
+    /// Extra providers to prepend per chain: chain_id → [url, ...]
+    /// These are tried first (e.g. Helius for eth/sol with API key).
+    pub extra_providers: HashMap<String, Vec<String>>,
 }
 
 impl Default for ServerConfig {
@@ -42,7 +45,35 @@ impl Default for ServerConfig {
             bind: "0.0.0.0:3000".parse().unwrap(),
             cache_path: None,
             chains: vec![],
+            extra_providers: HashMap::new(),
         }
+    }
+}
+
+impl ServerConfig {
+    /// Convenience: load extra providers from env vars.
+    ///
+    /// Reads `OPENRPC_EXTRA_{CHAIN}` (e.g. `OPENRPC_EXTRA_ETH`, `OPENRPC_EXTRA_SOL`)
+    /// as comma-separated URLs, prepending them to the built-in provider list.
+    ///
+    /// Example (shell):
+    /// ```text
+    /// OPENRPC_EXTRA_ETH=https://eth-mainnet.g.alchemy.com/v2/YOUR_KEY
+    /// OPENRPC_EXTRA_SOL=https://mainnet.helius-rpc.com/?api-key=YOUR_KEY
+    /// ```
+    pub fn with_env_providers(mut self) -> Self {
+        use std::env;
+        for chain in openrpc_core::chain::CHAINS {
+            let var = format!("OPENRPC_EXTRA_{}", chain.id.to_uppercase());
+            if let Ok(val) = env::var(&var) {
+                let urls: Vec<String> = val.split(',').map(|s| s.trim().to_string()).filter(|s| !s.is_empty()).collect();
+                if !urls.is_empty() {
+                    info!("extra providers for '{}' from env: {} url(s)", chain.id, urls.len());
+                    self.extra_providers.insert(chain.id.to_string(), urls);
+                }
+            }
+        }
+        self
     }
 }
 
@@ -70,11 +101,17 @@ pub async fn serve(config: ServerConfig) -> anyhow::Result<()> {
             warn!("unknown chain '{}' — skipping", chain_id);
             continue;
         };
+
+        // Prepend any extra (keyed) providers before the free built-ins
+        let extra = config.extra_providers.get(chain_id).map(|v| v.as_slice()).unwrap_or(&[]);
+        let mut all_providers: Vec<&str> = extra.iter().map(|s| s.as_str()).collect();
+        all_providers.extend_from_slice(chain.providers);
+
+        info!("chain '{}' enabled with {} providers ({} keyed)", chain.id, all_providers.len(), extra.len());
         pools.insert(
             chain.id.to_string(),
-            Mutex::new(ProviderPool::new(chain.id, chain.providers)),
+            Mutex::new(ProviderPool::new(chain.id, &all_providers)),
         );
-        info!("chain '{}' enabled with {} providers", chain.id, chain.providers.len());
     }
 
     // Build cache

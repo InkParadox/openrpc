@@ -44,6 +44,14 @@ enum Commands {
         #[arg(long, value_name = "PATH")]
         cache: Option<String>,
 
+        /// Extra provider URL for a chain: chain=url (repeat for multiple).
+        /// Extra providers are tried first (e.g. your Helius or Alchemy key).
+        /// Also reads OPENRPC_EXTRA_{CHAIN} env vars automatically.
+        ///
+        /// Example: --extra sol=https://mainnet.helius-rpc.com/?api-key=KEY
+        #[arg(long = "extra", value_name = "CHAIN=URL")]
+        extras: Vec<String>,
+
         /// Log level (trace, debug, info, warn, error).
         #[arg(long, default_value = "info")]
         log: String,
@@ -58,7 +66,7 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Serve { port, host, chains, cache, log } => {
+        Commands::Serve { port, host, chains, cache, extras, log } => {
             tracing_subscriber::fmt()
                 .with_env_filter(
                     EnvFilter::try_from_default_env()
@@ -68,11 +76,22 @@ async fn main() -> anyhow::Result<()> {
 
             let bind: std::net::SocketAddr = format!("{host}:{port}").parse()?;
 
+            // Parse --extra chain=url flags
+            let mut extra_providers: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
+            for entry in &extras {
+                if let Some((chain, url)) = entry.split_once('=') {
+                    extra_providers.entry(chain.to_string()).or_default().push(url.to_string());
+                } else {
+                    eprintln!("warning: --extra '{}' ignored (expected chain=url format)", entry);
+                }
+            }
+
             let config = ServerConfig {
                 bind,
                 cache_path: cache,
                 chains,
-            };
+                extra_providers,
+            }.with_env_providers(); // also load OPENRPC_EXTRA_* from env
 
             serve(config).await?;
         }

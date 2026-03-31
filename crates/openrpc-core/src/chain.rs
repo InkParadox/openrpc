@@ -38,12 +38,11 @@ pub const CHAINS: &[ChainConfig] = &[
         chain_id: 1,
         native_symbol: "ETH",
         providers: &[
-            "https://eth.llamarpc.com",
-            "https://cloudflare-eth.com",
-            "https://rpc.ankr.com/eth",
-            "https://ethereum.publicnode.com",
-            "https://1rpc.io/eth",
-            "https://rpc.flashbots.net",
+            "https://cloudflare-eth.com",          // Cloudflare — very fast, no key
+            "https://eth.llamarpc.com",             // Llama — reliable, no key
+            "https://ethereum.publicnode.com",      // PublicNode — no key
+            "https://rpc.flashbots.net",            // Flashbots — MEV-protected, no key
+            "https://eth.drpc.org",                 // dRPC — no key
         ],
         block_time_ms: 12_000,
     },
@@ -53,11 +52,10 @@ pub const CHAINS: &[ChainConfig] = &[
         chain_id: 8453,
         native_symbol: "ETH",
         providers: &[
-            "https://mainnet.base.org",
-            "https://base.llamarpc.com",
-            "https://rpc.ankr.com/base",
-            "https://base.publicnode.com",
-            "https://1rpc.io/base",
+            "https://mainnet.base.org",             // Coinbase official, no key
+            "https://base.llamarpc.com",            // Llama — no key
+            "https://base.publicnode.com",          // PublicNode — no key
+            "https://base.drpc.org",               // dRPC — no key
         ],
         block_time_ms: 2_000,
     },
@@ -67,11 +65,10 @@ pub const CHAINS: &[ChainConfig] = &[
         chain_id: 42161,
         native_symbol: "ETH",
         providers: &[
-            "https://arb1.arbitrum.io/rpc",
-            "https://arbitrum.llamarpc.com",
-            "https://rpc.ankr.com/arbitrum",
-            "https://arbitrum.publicnode.com",
-            "https://1rpc.io/arb",
+            "https://arb1.arbitrum.io/rpc",         // Offchain Labs official, no key
+            "https://arbitrum.llamarpc.com",        // Llama — no key
+            "https://arbitrum.publicnode.com",      // PublicNode — no key
+            "https://arbitrum.drpc.org",           // dRPC — no key
         ],
         block_time_ms: 250,
     },
@@ -81,11 +78,10 @@ pub const CHAINS: &[ChainConfig] = &[
         chain_id: 10,
         native_symbol: "ETH",
         providers: &[
-            "https://mainnet.optimism.io",
-            "https://optimism.llamarpc.com",
-            "https://rpc.ankr.com/optimism",
-            "https://optimism.publicnode.com",
-            "https://1rpc.io/op",
+            "https://mainnet.optimism.io",          // OP Labs official, no key
+            "https://optimism.llamarpc.com",        // Llama — no key
+            "https://optimism.publicnode.com",      // PublicNode — no key
+            "https://optimism.drpc.org",           // dRPC — no key
         ],
         block_time_ms: 2_000,
     },
@@ -95,11 +91,10 @@ pub const CHAINS: &[ChainConfig] = &[
         chain_id: 137,
         native_symbol: "MATIC",
         providers: &[
-            "https://polygon-rpc.com",
-            "https://polygon.llamarpc.com",
-            "https://rpc.ankr.com/polygon",
-            "https://polygon.publicnode.com",
-            "https://1rpc.io/matic",
+            "https://polygon-rpc.com",              // Polygon official, no key
+            "https://polygon.llamarpc.com",         // Llama — no key
+            "https://polygon.publicnode.com",       // PublicNode — no key
+            "https://polygon.drpc.org",            // dRPC — no key
         ],
         block_time_ms: 2_200,
     },
@@ -109,11 +104,10 @@ pub const CHAINS: &[ChainConfig] = &[
         chain_id: 56,
         native_symbol: "BNB",
         providers: &[
-            "https://bsc-dataseed1.binance.org",
-            "https://bsc-dataseed2.binance.org",
-            "https://rpc.ankr.com/bsc",
-            "https://bsc.publicnode.com",
-            "https://1rpc.io/bnb",
+            "https://bsc-dataseed1.binance.org",    // Binance official, no key
+            "https://bsc-dataseed2.binance.org",    // Binance official (backup), no key
+            "https://bsc-dataseed3.binance.org",    // Binance official (backup), no key
+            "https://bsc.publicnode.com",           // PublicNode — no key
         ],
         block_time_ms: 3_000,
     },
@@ -123,10 +117,9 @@ pub const CHAINS: &[ChainConfig] = &[
         chain_id: 43114,
         native_symbol: "AVAX",
         providers: &[
-            "https://api.avax.network/ext/bc/C/rpc",
-            "https://rpc.ankr.com/avalanche",
-            "https://avalanche.publicnode.com",
-            "https://1rpc.io/avax/c",
+            "https://api.avax.network/ext/bc/C/rpc", // Ava Labs official, no key
+            "https://avalanche.publicnode.com",      // PublicNode — no key
+            "https://avax.drpc.org",                // dRPC — no key
         ],
         block_time_ms: 2_000,
     },
@@ -136,12 +129,24 @@ pub const CHAINS: &[ChainConfig] = &[
         chain_id: 100,
         native_symbol: "xDAI",
         providers: &[
-            "https://rpc.gnosischain.com",
-            "https://rpc.ankr.com/gnosis",
-            "https://gnosis.publicnode.com",
-            "https://1rpc.io/gnosis",
+            "https://rpc.gnosischain.com",          // Gnosis official, no key
+            "https://gnosis.publicnode.com",        // PublicNode — no key
+            "https://gnosis.drpc.org",             // dRPC — no key
         ],
         block_time_ms: 5_000,
+    },
+    // ── Non-EVM ─────────────────────────────────────────────────────────────
+    // chain_id = 0 marks non-EVM chains. The proxy still speaks JSON-RPC.
+    ChainConfig {
+        id: "sol",
+        name: "Solana",
+        chain_id: 0, // non-EVM
+        native_symbol: "SOL",
+        providers: &[
+            "https://api.mainnet-beta.solana.com",  // Solana Labs official, no key
+            "https://solana-rpc.publicnode.com",    // PublicNode — no key
+        ],
+        block_time_ms: 400,
     },
 ];
 
